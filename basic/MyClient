@@ -1,0 +1,30 @@
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
+public class MyClient { //cannot play this class first because no server is waiting at the port
+	
+	public static void main(String[] args) { //the client initiates the code  
+		try {
+			Socket socket = new Socket("localhost", 5000);
+			
+			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+			DataInputStream in = new DataInputStream(socket.getInputStream());
+			
+			out.writeBytes("Hello Mr. Server \n");
+			out.flush(); //makes sure the data is sent but doesn't close the connection
+			
+			System.out.println("waiting for a reply from the server");
+			
+			String answer = in.readLine();
+			System.out.println("Server says " + answer);
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("Client dies");
+		
+	}
+}
