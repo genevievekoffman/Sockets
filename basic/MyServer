@@ -1,0 +1,40 @@
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+
+public class MyServer {
+	
+	public static void main(String[] args) {
+		try {
+			ServerSocket serverSocket = 
+					new ServerSocket(5000); //port 5000
+			
+			System.out.println("Calling accept()");
+			Socket client = 
+					serverSocket.accept(); //program stuck in this line until it receives something in port 5000
+			
+			DataInputStream in = //after the connection is established, they can continue talking 
+					new DataInputStream( //getting a message from the client 
+							new BufferedInputStream(
+									client.getInputStream()));  //got its input string from the client - inputstring
+			
+			String msg = in.readLine(); //reads the msg
+			System.out.println("Client says " + msg);
+			
+			DataOutputStream out = new DataOutputStream(client.getOutputStream()); //in order to send back a message to client, we use the outputstring
+			out.writeBytes("Hey there from server!");
+			out.close();
+			
+			client.close(); // closes the connection with the client 
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}  
+		
+		System.out.println("Server dies");
+	}
+}
