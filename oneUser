@@ -1,0 +1,93 @@
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader; //??
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+
+public class Server{
+	private static ServerSocket serverSocket; 
+	private Socket userSocket;
+	private PrintWriter out; 
+	private BufferedReader in;
+	 
+	public void start(int port) {
+		try {
+			serverSocket = new ServerSocket(port);
+			System.out.println("Server is open");
+			
+			
+			ExecutorService pool = Executors.newFixedThreadPool(10); //ExecutorService= var
+			while (true) {
+				pool.execute(new UserHandler(serverSocket.accept()));
+				
+			}
+			
+//			while(true) {
+//				new UserHandler(serverSocket.accept()).start(); //waiting for action on the server - nc localhost 5000
+//			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static class UserHandler extends Thread { //new thread every time a user joins
+		private Socket userSocket;
+		private PrintWriter out;
+		private BufferedReader in; 
+		
+		public UserHandler(Socket socket) {
+			this.userSocket = socket;
+		}
+		
+		@Override
+		public void run() {
+			System.out.println(userSocket + " has joined the server");
+			try {
+				out = new PrintWriter(userSocket.getOutputStream(), true);
+				in = new BufferedReader(new InputStreamReader(userSocket.getInputStream()));
+				
+				
+				String msg; //value of null - needed for while loop
+				
+				while((msg = in.readLine()) != null) {
+					if("end".equals(msg)) { //keyword to end conversation
+						System.out.println("Goodbye");
+						System.out.println(userSocket + " has left the server");
+						stopP();
+						break;
+					}
+					System.out.println("User" + userSocket + "says: " + msg);
+				}
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		public void stopP() {
+			try {
+				in.close();
+				out.close();
+				userSocket.close();
+				serverSocket.close();
+				System.exit(0); //closes the thread of the main thread (server thread)  
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			} 
+		}
+	}
+	 
+	
+	public static void main(String[]args) {
+		Server server = new Server();
+		server.start(5000);
+
+	}
+}
